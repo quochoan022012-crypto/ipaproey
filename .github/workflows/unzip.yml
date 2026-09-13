@@ -1,24 +1,39 @@
-name: Unzip file
+name: Unzip proxy.zip
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'proxy.zip'
+      - '.github/workflows/unzip.yml'
+
+permissions:
+  contents: write
 
 jobs:
   unzip:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Kiểm tra file zip có tồn tại
+        run: |
+          ls -la
+          test -f proxy.zip && echo "Đã tìm thấy proxy.zip" || (echo "KHÔNG tìm thấy proxy.zip" && exit 1)
+
       - name: Unzip file
         run: |
           mkdir -p extracted
-          unzip -o "duong/dan/proxy.zip" -d extracted
+          unzip -o proxy.zip -d extracted
+          echo "--- Nội dung sau khi giải nén ---"
+          ls -la extracted
 
-      - name: Commit extracted files
+      - name: Commit file đã giải nén
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add extracted
-          git commit -m "Auto unzip file"
+          git diff --cached --quiet || git commit -m "Auto unzip proxy.zip"
           git push
